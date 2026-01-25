@@ -1,13 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, ScanLine } from "lucide-react";
+import { Html5Qrcode } from "html5-qrcode";
 import { PageHeader } from "@/components/PageHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { AttendeeCard } from "@/components/AttendeeCard";
 import { toast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import attendeesData from "@/data/attendees.json";
 
 export default function CheckIn() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerContainerRef = useRef<HTMLDivElement>(null);
   
   const filteredAttendees = attendeesData.filter(
     (attendee) =>
@@ -15,11 +26,71 @@ export default function CheckIn() {
       attendee.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  useEffect(() => {
+    if (isScannerOpen && scannerContainerRef.current) {
+      const startScanner = async () => {
+        try {
+          const html5QrCode = new Html5Qrcode("qr-reader");
+          scannerRef.current = html5QrCode;
+
+          await html5QrCode.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 },
+            },
+            (decodedText) => {
+              // QR code scanned successfully
+              toast({
+                title: "QR Code Scanned",
+                description: `Scanned: ${decodedText}`,
+              });
+              stopScanner();
+              setIsScannerOpen(false);
+            },
+            (errorMessage) => {
+              // Ignore errors - they're expected during scanning
+            }
+          );
+        } catch (err) {
+          toast({
+            title: "Camera Error",
+            description: "Failed to start camera. Please check permissions.",
+            variant: "destructive",
+          });
+          setIsScannerOpen(false);
+        }
+      };
+
+      startScanner();
+    }
+
+    return () => {
+      if (scannerRef.current) {
+        stopScanner();
+      }
+    };
+  }, [isScannerOpen]);
+
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+        scannerRef.current = null;
+      } catch (err) {
+        // Ignore errors when stopping
+      }
+    }
+  };
+
   const handleQRScan = () => {
-    toast({
-      title: "QR Scanner",
-      description: "QR code scanner would open here.",
-    });
+    setIsScannerOpen(true);
+  };
+
+  const handleCloseScanner = async () => {
+    await stopScanner();
+    setIsScannerOpen(false);
   };
 
   return (
@@ -67,6 +138,24 @@ export default function CheckIn() {
       </div>
 
       <BottomNav />
+
+      <Dialog open={isScannerOpen} onOpenChange={handleCloseScanner}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Scan QR Code</DialogTitle>
+            <DialogDescription>
+              Position the QR code within the frame to scan
+            </DialogDescription>
+          </DialogHeader>
+          <div className="w-full">
+            <div
+              id="qr-reader"
+              ref={scannerContainerRef}
+              className="w-full rounded-lg overflow-hidden min-h-[300px]"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

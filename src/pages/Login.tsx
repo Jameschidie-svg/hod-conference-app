@@ -10,7 +10,7 @@ export default function Login() {
       title: "Signing in...",
       description: "Connecting to Google account",
     });
-    
+
     // Simulate login delay
     setTimeout(() => {
       toast({
@@ -23,7 +23,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
-      <div className="flex-1 flex flex-col items-center justify-center gap-6">
+      <div className="flex flex-col items-center justify-center gap-6 mb-12">
         <img
           src={logo}
           alt="HOD Logo"
@@ -32,7 +32,7 @@ export default function Login() {
         <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
       </div>
 
-      <div className="w-full max-w-sm pb-20">
+      <div className="w-full max-w-sm">
         <button
           onClick={handleGoogleSignIn}
           className="w-full bg-card border border-border rounded-2xl py-4 px-6 flex items-center justify-center gap-3 shadow-sm hover:shadow-md transition-shadow"
