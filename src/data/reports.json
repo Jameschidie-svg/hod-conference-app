@@ -1,0 +1,33 @@
+{
+  "totalAttendance": 316,
+  "attendanceByDay": {
+    "all": 87,
+    "day1": 25,
+    "day2": 166,
+    "day3": 63
+  },
+  "attendanceByGender": {
+    "male": 158,
+    "female": 158
+  },
+  "attendanceByService": {
+    "allDays": 87,
+    "day1": 25,
+    "day2": 166,
+    "day3": 63
+  },
+  "attendanceByAgeRange": [
+    { "range": "18-24", "count": 45, "percentage": 18 },
+    { "range": "25-30", "count": 78, "percentage": 11 },
+    { "range": "31-35", "count": 92, "percentage": 14 },
+    { "range": "36-40", "count": 56, "percentage": 25 },
+    { "range": "41-45", "count": 35, "percentage": 3 },
+    { "range": "46+", "count": 10, "percentage": 29 }
+  ],
+  "dashboardStats": {
+    "registeredAttendees": 42,
+    "currentAttendees": 35,
+    "workersPresent": 18,
+    "firstTimersPresent": 5
+  }
+}

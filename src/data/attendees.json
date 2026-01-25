@@ -1,0 +1,132 @@
+[
+  {
+    "id": "1",
+    "name": "Sarah Johnson",
+    "role": "Member",
+    "email": "sarah.johnson@email.com",
+    "phone": "+234 801 234 5678",
+    "membershipStatus": "Member",
+    "modeOfAttendance": "In Person",
+    "gender": "Female",
+    "ageRange": "25-30",
+    "checkedIn": true,
+    "attendanceHistory": [
+      { "date": "October 26, 2023", "service": "Morning Service" },
+      { "date": "October 22, 2023", "service": "Evening Service" },
+      { "date": "October 19, 2023", "service": "Morning Service" },
+      { "date": "October 15, 2023", "service": "Afternoon Service" },
+      { "date": "October 12, 2023", "service": "Morning Service" }
+    ]
+  },
+  {
+    "id": "2",
+    "name": "Michael Smith",
+    "role": "Worker",
+    "email": "michael.smith@email.com",
+    "phone": "+234 802 345 6789",
+    "membershipStatus": "Worker",
+    "modeOfAttendance": "In Person",
+    "gender": "Male",
+    "ageRange": "31-35",
+    "checkedIn": true,
+    "attendanceHistory": [
+      { "date": "October 26, 2023", "service": "Morning Service" },
+      { "date": "October 22, 2023", "service": "Evening Service" },
+      { "date": "October 19, 2023", "service": "Afternoon Service" }
+    ]
+  },
+  {
+    "id": "3",
+    "name": "Segun Akinola",
+    "role": "Guest",
+    "email": "segun.akinola@email.com",
+    "phone": "+234 803 456 7890",
+    "membershipStatus": "Guest",
+    "modeOfAttendance": "In Person",
+    "gender": "Male",
+    "ageRange": "18-24",
+    "checkedIn": false,
+    "attendanceHistory": [
+      { "date": "October 26, 2023", "service": "Morning Service" }
+    ]
+  },
+  {
+    "id": "4",
+    "name": "Olaoluwa Olatunji",
+    "role": "Guest",
+    "email": "olaoluwa.olatunji@email.com",
+    "phone": "+234 804 567 8901",
+    "membershipStatus": "Guest",
+    "modeOfAttendance": "In Person",
+    "gender": "Male",
+    "ageRange": "36-40",
+    "checkedIn": false,
+    "attendanceHistory": [
+      { "date": "October 22, 2023", "service": "Evening Service" },
+      { "date": "October 15, 2023", "service": "Morning Service" }
+    ]
+  },
+  {
+    "id": "5",
+    "name": "Oluwajuwon Afolabi",
+    "role": "Guest",
+    "email": "oluwajuwon.afolabi@email.com",
+    "phone": "+234 805 678 9012",
+    "membershipStatus": "Guest",
+    "modeOfAttendance": "Virtual",
+    "gender": "Male",
+    "ageRange": "25-30",
+    "checkedIn": false,
+    "attendanceHistory": []
+  },
+  {
+    "id": "6",
+    "name": "Oluwakemi Olaoluwa",
+    "role": "Member",
+    "email": "oluwakemi.olaoluwa@email.com",
+    "phone": "+234 806 789 0123",
+    "membershipStatus": "Member",
+    "modeOfAttendance": "In Person",
+    "gender": "Female",
+    "ageRange": "31-35",
+    "checkedIn": false,
+    "attendanceHistory": [
+      { "date": "October 26, 2023", "service": "Morning Service" },
+      { "date": "October 22, 2023", "service": "Evening Service" },
+      { "date": "October 19, 2023", "service": "Morning Service" },
+      { "date": "October 15, 2023", "service": "Afternoon Service" }
+    ]
+  },
+  {
+    "id": "7",
+    "name": "Adebayo Taiwo",
+    "role": "Worker",
+    "email": "adebayo.taiwo@email.com",
+    "phone": "+234 807 890 1234",
+    "membershipStatus": "Worker",
+    "modeOfAttendance": "In Person",
+    "gender": "Male",
+    "ageRange": "41-45",
+    "checkedIn": true,
+    "attendanceHistory": [
+      { "date": "October 26, 2023", "service": "Morning Service" },
+      { "date": "October 22, 2023", "service": "Morning Service" }
+    ]
+  },
+  {
+    "id": "8",
+    "name": "Chidinma Okoro",
+    "role": "Member",
+    "email": "chidinma.okoro@email.com",
+    "phone": "+234 808 901 2345",
+    "membershipStatus": "Member",
+    "modeOfAttendance": "In Person",
+    "gender": "Female",
+    "ageRange": "18-24",
+    "checkedIn": true,
+    "attendanceHistory": [
+      { "date": "October 26, 2023", "service": "Evening Service" },
+      { "date": "October 19, 2023", "service": "Morning Service" }
+    ]
+  }
+]
