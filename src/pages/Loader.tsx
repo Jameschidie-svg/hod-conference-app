@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/stores/authStore";
 import logo from "@/assets/logo.jpg";
 
 export default function Loader() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
@@ -12,14 +14,14 @@ export default function Loader() {
     }, 1500);
 
     const navigateTimer = setTimeout(() => {
-      navigate("/login");
+      navigate(isAuthenticated ? "/dashboard" : "/login");
     }, 1800);
 
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(navigateTimer);
     };
-  }, [navigate]);
+  }, [navigate, isAuthenticated]);
 
   return (
     <div

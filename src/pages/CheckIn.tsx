@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, ScanLine } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import { PageHeader } from "@/components/PageHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { AttendeeCard } from "@/components/AttendeeCard";
 import { toast } from "@/hooks/use-toast";
+import { useGetAttendees } from "@/hooks/api/useAttendees";
+import { useEventStore } from "@/stores/eventStore";
 import {
   Dialog,
   DialogContent,
@@ -12,18 +15,26 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import attendeesData from "@/data/attendees.json";
 
 export default function CheckIn() {
+  const navigate = useNavigate();
+  const { currentEvent } = useEventStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerRef = useRef<HTMLDivElement>(null);
 
-  const filteredAttendees = attendeesData.filter(
+  // Fetch attendees from API
+  const { data: attendees = [], isLoading } = useGetAttendees({
+    eventId: currentEvent?.id || "",
+  });
+
+  // Filter attendees by search query
+  const filteredAttendees = attendees.filter(
     (attendee) =>
-      attendee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      attendee.role.toLowerCase().includes(searchQuery.toLowerCase())
+      attendee.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      attendee.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      attendee.userType?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const stopScanner = async () => {
@@ -82,13 +93,36 @@ export default function CheckIn() {
               qrbox: { width: 250, height: 250 },
               aspectRatio: 1.0,
             },
-            (decodedText) => {
+            async (decodedText) => {
               // QR code scanned successfully
-              toast({
-                title: "QR Code Scanned",
-                description: `Scanned: ${decodedText}`,
-              });
               handleCloseScanner();
+
+              // Try to parse the QR code - could be attendee ID directly or JSON
+              let attendeeId: string | null = null;
+
+              try {
+                // Try parsing as JSON first
+                const parsed = JSON.parse(decodedText);
+                attendeeId = parsed.attendeeId || parsed.id || decodedText;
+              } catch {
+                // If not JSON, assume it's the attendee ID directly
+                attendeeId = decodedText;
+              }
+
+              // Find attendee by ID from current attendees list
+              const attendee = attendees.find((a) => a.id === attendeeId || a.userId === attendeeId);
+
+              if (attendee) {
+                navigate(`/checkin/${attendee.id}`);
+              } else {
+                // If not found in current list, try navigating directly with the ID
+                // The AttendeeDetail page will handle fetching if it exists
+                toast({
+                  title: "Navigating to attendee...",
+                  description: "Loading attendee details.",
+                });
+                navigate(`/checkin/${attendeeId}`);
+              }
             },
             (errorMessage) => {
               // Ignore errors - they're expected during scanning
@@ -130,7 +164,7 @@ export default function CheckIn() {
         stopScanner();
       }
     };
-  }, [isScannerOpen]);
+  }, [isScannerOpen, attendees, navigate]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -147,33 +181,51 @@ export default function CheckIn() {
       />
 
       <div className="px-4 py-4 max-w-lg mx-auto">
-        <div className="relative mb-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search attendees..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-card border border-border rounded-xl py-4 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-
-        <div className="space-y-3">
-          {filteredAttendees.map((attendee) => (
-            <AttendeeCard
-              key={attendee.id}
-              id={attendee.id}
-              name={attendee.name}
-              role={attendee.role}
-            />
-          ))}
-
-          {filteredAttendees.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No attendees found</p>
+        {!currentEvent ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No event selected</p>
+          </div>
+        ) : (
+          <>
+            <div className="relative mb-6">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search attendees..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-card border border-border rounded-xl py-4 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
-          )}
-        </div>
+
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading attendees...</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredAttendees.map((attendee) => (
+                  <AttendeeCard
+                    key={attendee.id}
+                    id={attendee.id}
+                    name={attendee.user?.name || "Unknown"}
+                    role={attendee.userType || "Attendee"}
+                    status={attendee.status}
+                  />
+                ))}
+
+                {filteredAttendees.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">
+                      {searchQuery ? "No attendees found matching your search" : "No attendees found"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <BottomNav />

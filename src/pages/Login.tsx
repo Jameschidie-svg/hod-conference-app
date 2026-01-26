@@ -1,24 +1,38 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/stores/authStore";
+import { useLogin } from "@/hooks/api/useAuth";
 import logo from "@/assets/logo.jpg";
 import { toast } from "@/hooks/use-toast";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+  const loginMutation = useLogin();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Handle OAuth callback if present
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+
+    if (code || window.location.pathname.includes("/auth/google/callback")) {
+      loginMutation.mutate();
+    }
+  }, []);
 
   const handleGoogleSignIn = () => {
     toast({
       title: "Signing in...",
-      description: "Connecting to Google account",
+      description: "Redirecting to Google",
     });
-
-    // Simulate login delay
-    setTimeout(() => {
-      toast({
-        title: "Welcome back!",
-        description: "You have been signed in successfully.",
-      });
-      navigate("/dashboard");
-    }, 1000);
+    loginMutation.mutate();
   };
 
   return (

@@ -5,11 +5,13 @@ interface AttendeeCardProps {
   id: string;
   name: string;
   role: string;
+  status?: "PENDING" | "CHECKED_IN";
 }
 
-export function AttendeeCard({ id, name, role }: AttendeeCardProps) {
+export function AttendeeCard({ id, name, role, status }: AttendeeCardProps) {
   const navigate = useNavigate();
   const initial = name.charAt(0).toUpperCase();
+  const isCheckedIn = status === "CHECKED_IN";
 
   return (
     <button
@@ -20,7 +22,14 @@ export function AttendeeCard({ id, name, role }: AttendeeCardProps) {
         <span className="text-lg font-semibold text-primary-foreground">{initial}</span>
       </div>
       <div className="flex-1 text-left">
-        <p className="font-semibold text-foreground">{name}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-foreground">{name}</p>
+          {isCheckedIn && (
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-success-bg text-success">
+              Checked In
+            </span>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground">{role}</p>
       </div>
       <ChevronRight className="w-5 h-5 text-muted-foreground" />

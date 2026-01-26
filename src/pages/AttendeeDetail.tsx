@@ -1,19 +1,56 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { User } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { CheckInModal } from "@/components/CheckInModal";
 import { toast } from "@/hooks/use-toast";
-import attendeesData from "@/data/attendees.json";
+import { useGetAttendee } from "@/hooks/api/useAttendees";
+import { useGetCheckInsByAttendee } from "@/hooks/api/useCheckIns";
+import { useGetDaysByEvent } from "@/hooks/api/useEvents";
+import { useEventStore } from "@/stores/eventStore";
+import { format } from "date-fns";
 
 export default function AttendeeDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const { currentEvent } = useEventStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCheckedIn, setIsCheckedIn] = useState(false);
 
-  const attendee = attendeesData.find((a) => a.id === id);
+  const { data: attendee, isLoading } = useGetAttendee(id || null);
+  const { data: checkIns = [] } = useGetCheckInsByAttendee(id || null);
+  const { data: days = [] } = useGetDaysByEvent(currentEvent?.id || null);
+
+  // Get current day (today's date within event range)
+  const currentDay = useMemo(() => {
+    if (!currentEvent || days.length === 0) return null;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Find day that matches today's date
+    return days.find((day) => {
+      const dayDate = new Date(day.date);
+      dayDate.setHours(0, 0, 0, 0);
+      return dayDate.getTime() === today.getTime();
+    }) || days[0]; // Fallback to first day if today not found
+  }, [days, currentEvent]);
+
+  // Check if already checked in for current day
+  const isCheckedInForToday = useMemo(() => {
+    if (!currentDay || !id) return false;
+    return checkIns.some((checkIn) => checkIn.dayId === currentDay.id);
+  }, [checkIns, currentDay, id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!attendee) {
     return (
@@ -23,11 +60,8 @@ export default function AttendeeDetail() {
     );
   }
 
-  const handleCheckIn = () => {
-    setIsCheckedIn(true);
-  };
-
-  const checkedInStatus = attendee.checkedIn || isCheckedIn;
+  const attendeeName = attendee.user?.name || "Unknown";
+  const checkedInStatus = attendee.status === "CHECKED_IN" || isCheckedInForToday;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -37,9 +71,17 @@ export default function AttendeeDetail() {
         {/* Avatar and Name */}
         <div className="flex flex-col items-center mb-6">
           <div className="w-28 h-28 rounded-full bg-muted flex items-center justify-center mb-4">
-            <User className="w-16 h-16 text-muted-foreground" />
+            {attendee.user?.picture ? (
+              <img
+                src={attendee.user.picture}
+                alt={attendeeName}
+                className="w-28 h-28 rounded-full object-cover"
+              />
+            ) : (
+              <User className="w-16 h-16 text-muted-foreground" />
+            )}
           </div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">{attendee.name}</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-2">{attendeeName}</h2>
           <span
             className={`px-4 py-1.5 rounded-full text-sm font-medium ${
               checkedInStatus
@@ -57,16 +99,26 @@ export default function AttendeeDetail() {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Full Name</span>
-              <span className="text-foreground font-medium">{attendee.name}</span>
+              <span className="text-foreground font-medium">{attendeeName}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Membership Status</span>
-              <span className="text-foreground font-medium">{attendee.membershipStatus}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Mode of Attendance</span>
-              <span className="text-foreground font-medium">{attendee.modeOfAttendance}</span>
-            </div>
+            {attendee.user?.email && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Email</span>
+                <span className="text-foreground font-medium">{attendee.user.email}</span>
+              </div>
+            )}
+            {attendee.user?.phone && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Phone</span>
+                <span className="text-foreground font-medium">{attendee.user.phone}</span>
+              </div>
+            )}
+            {attendee.userType && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Type</span>
+                <span className="text-foreground font-medium">{attendee.userType}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -75,13 +127,27 @@ export default function AttendeeDetail() {
           <h3 className="text-lg font-semibold text-foreground mb-4">
             Attendance History (Last 5 Visits)
           </h3>
-          {attendee.attendanceHistory.length > 0 ? (
+          {checkIns.length > 0 ? (
             <div className="space-y-4">
-              {attendee.attendanceHistory.slice(0, 5).map((visit, index) => (
-                <div key={index} className="border-l-2 border-primary pl-4 py-1">
-                  <p className="font-semibold text-foreground">{visit.date}</p>
-                  <p className="text-sm text-muted-foreground">Service Attended</p>
-                  <p className="text-foreground">{visit.service}</p>
+              {checkIns.slice(0, 5).map((checkIn) => (
+                <div key={checkIn.id} className="border-l-2 border-primary pl-4 py-1">
+                  <p className="font-semibold text-foreground">
+                    {checkIn.day?.date ? format(new Date(checkIn.day.date), "MMMM d, yyyy") : "Unknown date"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Services Attended</p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {checkIn.servicesAttended.map((service, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-1 rounded-md text-xs bg-muted text-foreground"
+                      >
+                        {service}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Checked in: {format(new Date(checkIn.checkedInAt), "h:mm a")}
+                  </p>
                 </div>
               ))}
             </div>
@@ -91,30 +157,40 @@ export default function AttendeeDetail() {
         </div>
 
         {/* Check In Button */}
-        <Button
-          onClick={() => {
-            if (checkedInStatus) {
-              toast({
-                title: "Already checked in",
-                description: `${attendee.name} is already checked in.`,
-              });
-            } else {
-              setIsModalOpen(true);
-            }
-          }}
-          className="w-full h-14 text-base font-semibold rounded-xl"
-          disabled={checkedInStatus}
-        >
-          {checkedInStatus ? "Already Checked In" : "Check In Attendee"}
-        </Button>
+        {!currentDay ? (
+          <div className="text-center py-4">
+            <p className="text-muted-foreground">No active day found for check-in</p>
+          </div>
+        ) : (
+          <Button
+            onClick={() => {
+              if (checkedInStatus) {
+                toast({
+                  title: "Already checked in",
+                  description: `${attendeeName} is already checked in for today.`,
+                });
+              } else {
+                setIsModalOpen(true);
+              }
+            }}
+            className="w-full h-14 text-base font-semibold rounded-xl"
+            disabled={checkedInStatus}
+          >
+            {checkedInStatus ? "Already Checked In" : "Check In Attendee"}
+          </Button>
+        )}
       </div>
 
-      <CheckInModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        attendeeName={attendee.name}
-        onConfirm={handleCheckIn}
-      />
+      {currentDay && (
+        <CheckInModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          attendeeId={id!}
+          attendeeName={attendeeName}
+          dayId={currentDay.id}
+          services={currentDay.services}
+        />
+      )}
     </div>
   );
 }
