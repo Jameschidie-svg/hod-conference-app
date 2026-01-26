@@ -19,58 +19,12 @@ export default function CheckIn() {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const filteredAttendees = attendeesData.filter(
     (attendee) =>
       attendee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       attendee.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  useEffect(() => {
-    if (isScannerOpen && scannerContainerRef.current) {
-      const startScanner = async () => {
-        try {
-          const html5QrCode = new Html5Qrcode("qr-reader");
-          scannerRef.current = html5QrCode;
-
-          await html5QrCode.start(
-            { facingMode: "environment" },
-            {
-              fps: 10,
-              qrbox: { width: 250, height: 250 },
-            },
-            (decodedText) => {
-              // QR code scanned successfully
-              toast({
-                title: "QR Code Scanned",
-                description: `Scanned: ${decodedText}`,
-              });
-              stopScanner();
-              setIsScannerOpen(false);
-            },
-            (errorMessage) => {
-              // Ignore errors - they're expected during scanning
-            }
-          );
-        } catch (err) {
-          toast({
-            title: "Camera Error",
-            description: "Failed to start camera. Please check permissions.",
-            variant: "destructive",
-          });
-          setIsScannerOpen(false);
-        }
-      };
-
-      startScanner();
-    }
-
-    return () => {
-      if (scannerRef.current) {
-        stopScanner();
-      }
-    };
-  }, [isScannerOpen]);
 
   const stopScanner = async () => {
     if (scannerRef.current) {
@@ -84,14 +38,99 @@ export default function CheckIn() {
     }
   };
 
-  const handleQRScan = () => {
-    setIsScannerOpen(true);
-  };
-
   const handleCloseScanner = async () => {
     await stopScanner();
     setIsScannerOpen(false);
   };
+
+  const handleQRScan = () => {
+    setIsScannerOpen(true);
+  };
+
+  useEffect(() => {
+    if (!isScannerOpen) {
+      return;
+    }
+
+    // Wait for dialog to be fully rendered before starting scanner
+    const timer = setTimeout(() => {
+      const element = document.getElementById("qr-reader");
+      if (!element) {
+        toast({
+          title: "Scanner Error",
+          description: "Scanner container not found. Please try again.",
+          variant: "destructive",
+        });
+        setIsScannerOpen(false);
+        return;
+      }
+
+      const startScanner = async () => {
+        try {
+          // Check if scanner already exists
+          if (scannerRef.current) {
+            await stopScanner();
+          }
+
+          const html5QrCode = new Html5Qrcode("qr-reader");
+          scannerRef.current = html5QrCode;
+
+          await html5QrCode.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 },
+              aspectRatio: 1.0,
+            },
+            (decodedText) => {
+              // QR code scanned successfully
+              toast({
+                title: "QR Code Scanned",
+                description: `Scanned: ${decodedText}`,
+              });
+              handleCloseScanner();
+            },
+            (errorMessage) => {
+              // Ignore errors - they're expected during scanning
+              // Only log if it's not a "NotFoundException" (which is normal)
+              if (!errorMessage.includes("NotFoundException")) {
+                console.debug("QR scan error:", errorMessage);
+              }
+            }
+          );
+        } catch (err: any) {
+          console.error("Scanner error:", err);
+          let errorMessage = "Failed to start camera. Please check permissions.";
+
+          if (err?.message) {
+            if (err.message.includes("Permission denied") || err.message.includes("NotAllowedError")) {
+              errorMessage = "Camera permission denied. Please allow camera access in your browser settings.";
+            } else if (err.message.includes("NotFoundError") || err.message.includes("No camera")) {
+              errorMessage = "No camera found. Please connect a camera device.";
+            } else {
+              errorMessage = err.message;
+            }
+          }
+
+          toast({
+            title: "Camera Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
+          setIsScannerOpen(false);
+        }
+      };
+
+      startScanner();
+    }, 300); // Small delay to ensure dialog is fully rendered
+
+    return () => {
+      clearTimeout(timer);
+      if (scannerRef.current) {
+        stopScanner();
+      }
+    };
+  }, [isScannerOpen]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -128,7 +167,7 @@ export default function CheckIn() {
               role={attendee.role}
             />
           ))}
-          
+
           {filteredAttendees.length === 0 && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No attendees found</p>

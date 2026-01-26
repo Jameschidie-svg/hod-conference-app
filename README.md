@@ -1,73 +1,193 @@
-# Welcome to your Lovable project
+# HOD Check-In
 
-## Project info
+A modern conference management application for tracking attendee check-ins, managing attendance records, and generating reports. Built with React, TypeScript, and Tailwind CSS.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- 🔐 **Google Authentication** - Secure login with Google OAuth
+- 📱 **QR Code Scanner** - Camera-based QR code scanning for quick check-ins
+- 👥 **Attendee Management** - Search and manage conference attendees
+- 📊 **Dashboard** - Overview of attendance statistics and key metrics
+- 📈 **Reports** - Detailed attendance reports and analytics
+- 🎨 **Modern UI** - Beautiful, responsive design built with shadcn/ui components
+- 📱 **Mobile-First** - Optimized for mobile and desktop devices
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui (Radix UI primitives)
+- **Routing**: React Router DOM
+- **QR Scanner**: html5-qrcode
+- **Icons**: Lucide React
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js 18+ and npm (or yarn/pnpm)
+- A modern web browser with camera access (for QR scanning)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd worship-connect
+```
 
-Follow these steps:
+2. Install dependencies:
+```bash
+npm install
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. Open your browser and navigate to `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Building for Production
 
-**Use GitHub Codespaces**
+```bash
+npm run build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+The production build will be in the `dist` directory.
 
-## What technologies are used for this project?
+To preview the production build:
 
-This project is built with:
+```bash
+npm run preview
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Project Structure
 
-## How can I deploy this project?
+```
+src/
+├── assets/          # Static assets (images, logos)
+├── components/      # Reusable React components
+│   ├── ui/         # shadcn/ui components
+│   └── ...        # Custom components
+├── data/           # JSON data files (attendees, reports)
+├── hooks/          # Custom React hooks
+├── lib/            # Utility functions
+├── pages/          # Page components
+│   ├── Dashboard.tsx
+│   ├── CheckIn.tsx
+│   ├── Login.tsx
+│   ├── Report.tsx
+│   └── ...
+└── main.tsx        # Application entry point
+```
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Key Features
 
-## Can I connect a custom domain to my Lovable project?
+### QR Code Scanner
 
-Yes, you can!
+The QR code scanner uses the device camera to scan QR codes for quick attendee check-ins. The scanner:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- Requests camera permissions automatically
+- Works on both front and back cameras (prefers back camera)
+- Displays a live camera feed in a modal dialog
+- Automatically closes after successful scan
+- Shows error messages for permission or camera issues
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+**Note**: Camera access requires HTTPS in production or localhost for development.
+
+### Authentication
+
+Currently uses a simulated Google OAuth flow. In production, you'll need to:
+
+1. Set up Google OAuth credentials
+2. Configure the OAuth client ID
+3. Implement the actual authentication flow
+
+### Data Management
+
+The app currently uses JSON files for data storage (`src/data/`). For production, you should:
+
+- Set up a backend API
+- Connect to a database (PostgreSQL, MongoDB, etc.)
+- Implement proper authentication and authorization
+- Add data persistence
+
+## Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build in development mode
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+
+### Code Style
+
+The project uses:
+- ESLint for code linting
+- TypeScript for type safety
+- Prettier (if configured) for code formatting
+
+## Browser Support
+
+- Chrome/Edge (latest)
+- Firefox (latest)
+- Safari (latest)
+- Mobile browsers (iOS Safari, Chrome Mobile)
+
+**Note**: QR code scanning requires a browser that supports the MediaDevices API and camera access.
+
+
+### Vercel
+
+1. Install Vercel CLI: `npm i -g vercel`
+2. Run `vercel` in the project directory
+3. Follow the prompts
+
+### Netlify
+
+1. Build the project: `npm run build`
+2. Deploy the `dist` directory to Netlify
+3. Configure build settings if needed
+
+### Other Platforms
+
+The app can be deployed to any static hosting service:
+- GitHub Pages
+- AWS S3 + CloudFront
+- Azure Static Web Apps
+- Any Node.js hosting service
+
+## Environment Variables
+
+Create a `.env` file in the root directory for environment-specific variables:
+
+```env
+VITE_API_URL=your_api_url_here
+VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is private and proprietary.
+
+## Support
+
+For issues, questions, or contributions, please open an issue on the repository.
+
+---
+
+Built with ❤️ for conference management
