@@ -16,17 +16,27 @@ function getApiUrl(): string {
     return url;
 }
 
+function getGoogleClientId(): string {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+        throw new Error(
+            "VITE_GOOGLE_CLIENT_ID is not set. Please add it to your .env file with your Google OAuth Client ID"
+        );
+    }
+    return clientId;
+}
+
 export const authService = {
     // Initiate Google OAuth - redirects to backend, which then redirects to Google
     initiateGoogleAuth: () => {
         const API_URL = getApiUrl();
         // Redirect to backend OAuth endpoint - backend will handle redirecting to Google
-        window.location.href = `${API_URL}/auth/google`;
+        window.location.href = `${API_URL}/login`;
     },
 
     // Handle Google OAuth callback
     // The backend redirects back to the frontend after OAuth completes
-    // Backend flow: Frontend -> Backend /auth/google -> Google -> Backend /auth/google/callback -> Frontend
+    // Backend flow: Frontend -> Backend /login -> Google -> Backend /auth/google/callback -> Frontend
     // The backend should redirect to frontend with token or call the callback endpoint
     handleGoogleCallback: async (): Promise<AuthResponseDto> => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -107,4 +117,3 @@ export const authService = {
         return api.patch<UserProfileDto>("/users/me", data);
     },
 };
-
